@@ -42,3 +42,6 @@ fclean: clean
 	rm -f mandatory/theta0 mandatory/theta1
 
 re: fclean all
+
+git-fix:
+	@bash scripts/git-fix-remote.sh

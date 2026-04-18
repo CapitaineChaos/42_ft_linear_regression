@@ -27,23 +27,23 @@ def read_dataset(dataset_path):
 
 
 # h stands for "hypothesis", and is the function we want to fit to the data.
-# In our case, it's a linear function of the form hθ(x) = θ0 + θ1 * x, where θ0 is the intercept and θ1 is the slope.
-# hθ(x) = θ0 + θ1 * x
+# In our case, it's a linear function of the form hθ​(x) = θ0 + θ1 * x, where θ0 is the intercept and θ1 is the slope.
+# hθ​(x) = θ0 + θ1 * x
 def estimate_price(km, theta0, theta1):
     return theta0 + theta1 * km
 
 
 def update_thetas(dataset, learning_rate, theta0, theta1):
     # J stands for "cost function" or "loss function", and is a measure of how well the model fits the data.
-    # J(θ0, θ1) = (1/2m) * Σ(hθ(xᵢ) - yᵢ)², where hθ(xᵢ) = θ0 + θ1 * xᵢ ('2' is for the derivative to be simpler)
+    # J(θ0, θ1) = (1/2m) * Σ(hθ​(xᵢ) - yᵢ)², where hθ​(xᵢ) = θ0 + θ1 * xᵢ ('2' is for the derivative to be simpler)
     # ∇ stands for "gradient", and is a vector that points in the direction of the steepest increase of the cost function.
     # ∇J(θ0, θ1) = (∂J/∂θ0, ∂J/∂θ1)
-    # ∂J/∂θ0 = (1/m) * Σ(hθ(xᵢ) - yᵢ)
-    # ∂J/∂θ1 = (1/m) * Σ(hθ(xᵢ) - yᵢ) * xᵢ
+    # ∂J/∂θ0 = (1/m) * Σ(hθ​(xᵢ) - yᵢ)
+    # ∂J/∂θ1 = (1/m) * Σ(hθ​(xᵢ) - yᵢ) * xᵢ
     m = len(dataset)
     sum0, sum1 = 0.0, 0.0
     for km, price in dataset:
-        # error = hθ(xᵢ) - yᵢ = (θ0 + θ1 * xᵢ) - yᵢ
+        # error = hθ​(xᵢ) - yᵢ = (θ0 + θ1 * xᵢ) - yᵢ
         # error is the difference between the predicted price and the actual price for each data point
         error = estimate_price(km, theta0, theta1) - price
         sum0 += error
@@ -62,7 +62,7 @@ def update_thetas(dataset, learning_rate, theta0, theta1):
 
 def compute_mse(dataset, theta0, theta1):
     # MSE stands for "Mean Squared Error", and is a common metric for evaluating the performance of regression models.
-    # MSE = (1 / m) * Σ(hθ(xᵢ) - yᵢ)² = 2 * J(θ0, θ1)
+    # MSE = (1 / m) * Σ(hθ​(xᵢ) - yᵢ)² = 2 * J(θ0, θ1)
     sum = 0.0
     for km, price in dataset:
         sum += (estimate_price(km, theta0, theta1) - price) ** 2
