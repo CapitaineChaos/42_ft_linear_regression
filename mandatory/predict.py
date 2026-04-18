@@ -31,6 +31,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     km_value = args.km_value
 
+    print(f"Predicting price for a car with {km_value} km...")
+    
     # Read theta0 and theta1 from files
     theta0 = read_theta("theta0")
     theta1 = read_theta("theta1")
