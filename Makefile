@@ -3,6 +3,9 @@ PYTHON  := $(VENV)/bin/python3
 PIP     := $(VENV)/bin/pip
 DATA    := data/data.csv
 
+MANDATORY_DIR := mandatory
+BONUS_DIR     := bonus
+
 ARGS := $(filter-out predict,$(MAKECMDGOALS))
 
 .PHONY: all venv install train predict clean fclean re
@@ -19,16 +22,16 @@ install: venv
 	$(PIP) install --quiet -r requirements.txt
 
 train: install
-	cd mandatory && ../$(PYTHON) train.py ../$(DATA)
+	@cd $(MANDATORY_DIR) && ../$(PYTHON) train.py ../$(DATA) || true
 
 train-plot: install
-	cd mandatory && ../$(PYTHON) train.py ../$(DATA) --plot
+	@cd $(BONUS_DIR) && ../$(PYTHON) train.py ../$(DATA) --plot || true
 
 predict: install
-	cd mandatory && ../$(PYTHON) predict.py $(ARGS)
+	@cd $(MANDATORY_DIR) && ../$(PYTHON) predict.py $(ARGS) || true
 
 precision: install
-	cd mandatory && ../$(PYTHON) precision.py
+	@cd $(BONUS_DIR) && ../$(PYTHON) precision.py ../$(DATA) || true
 
 %:
 	@true
@@ -39,7 +42,8 @@ clean:
 
 fclean: clean
 	rm -rf $(VENV)
-	rm -f mandatory/theta0 mandatory/theta1
+	rm -f $(MANDATORY_DIR)/theta0 $(MANDATORY_DIR)/theta1
+	rm -f $(BONUS_DIR)/theta0 $(BONUS_DIR)/theta1
 
 re: fclean all
 

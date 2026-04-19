@@ -42,6 +42,7 @@ def update_thetas(dataset, learning_rate, theta0, theta1):
     # ∂J/∂θ1 = (1/m) * Σ(hθ​(xᵢ) - yᵢ) * xᵢ
     m = len(dataset)
     sum0, sum1 = 0.0, 0.0
+    tmp_theta0, tmp_theta1 = 0.0, 0.0
     for km, price in dataset:
         # error = hθ​(xᵢ) - yᵢ = (θ0 + θ1 * xᵢ) - yᵢ
         # error is the difference between the predicted price and the actual price for each data point
@@ -52,50 +53,7 @@ def update_thetas(dataset, learning_rate, theta0, theta1):
     tmp_theta0 = learning_rate / m * sum0
     # tmpθ1 = η * ∂J/∂θ1
     tmp_theta1 = learning_rate / m * sum1
-    # θ0 := θ0 - η * ∂J/∂θ0
-    theta0 -= tmp_theta0
-    # θ1 := θ1 - η * ∂J/∂θ1
-    theta1 -= tmp_theta1
-    return theta0, theta1
-
-
-
-def compute_mse(dataset, theta0, theta1):
-    # MSE stands for "Mean Squared Error", and is a common metric for evaluating the performance of regression models.
-    # MSE = (1 / m) * Σ(hθ​(xᵢ) - yᵢ)² = 2 * J(θ0, θ1)
-    sum = 0.0
-    for km, price in dataset:
-        sum += (estimate_price(km, theta0, theta1) - price) ** 2
-    return sum / len(dataset)
-
-
-def init_plot():
-    plt.ion()
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
-    fig.subplots_adjust(left=0.07, right=0.97, top=0.83, bottom=0.12, wspace=0.3)
-    return fig, ax1, ax2
-
-
-def update_plot(ax1, ax2, kms, prices, losses, theta0, theta1, epoch, max_epoch):
-    current_loss = losses[-1] if losses else 0.0
-    ax1.clear()
-    ax2.clear()
-    ax1.get_figure().suptitle(f'Epoch {epoch:,} / {max_epoch:,}', fontsize=13, fontweight='bold')
-    ax1.scatter(kms, prices, alpha=0.6, label='Dataset')
-    x_line = [min(kms), max(kms)]
-    ax1.plot(x_line, [estimate_price(x, theta0, theta1) for x in x_line], 'r-', label=f'θ₀ = {theta0:.1f} θ₁ = {theta1:.6f}')
-    ax1.set_xlabel('Mileage (km)')
-    ax1.set_ylabel('Price')
-    ax1.set_title('Linear Regression')
-    ax1.legend()
-    ax2.plot(losses, 'b-', label=f'MSE = {current_loss:.6f}')
-    ax2.set_xlim(0, max_epoch)
-    ax2.set_xlabel('Epoch')
-    ax2.set_ylim(0, max(losses) * 1.1 if losses else 1)
-    ax2.set_ylabel('MSE')
-    ax2.set_title('Loss Curve')
-    ax2.legend()
-    plt.pause(0.001)
+    return tmp_theta0, tmp_theta1
 
 
 # Min max normalization
@@ -109,7 +67,8 @@ def normalize_dataset(dataset, kms, prices):
         normalized.append((norm_km, norm_price))
     return normalized, km_min, km_max, price_min, price_max
 
-def denormalize_theta(theta0, theta1, km_min, km_max, price_min, price_max):
+
+def denormalize_thetas(theta0, theta1, km_min, km_max, price_min, price_max):
     if km_max > km_min and price_max > price_min:
         theta1_denorm = theta1 * (price_max - price_min) / (km_max - km_min)
         theta0_denorm = price_min + theta0 * (price_max - price_min) - theta1_denorm * km_min
@@ -117,39 +76,45 @@ def denormalize_theta(theta0, theta1, km_min, km_max, price_min, price_max):
     else:
         return theta0, theta1
 
-def train_model(dataset, plot=False):
+
+# Calculate R² score
+def calculate_r2_score(dataset, theta0, theta1):
+    y_true = [price for _, price in dataset]
+    y_pred = [estimate_price(km, theta0, theta1) for km, _ in dataset]
+
+    ss_res = 0.0
+    ss_tot = 0.0
+    for yt, yp in zip(y_true, y_pred):
+        ss_res += (yt - yp) ** 2
+    yt_sum = 0.0
+    for yt in y_true:
+        yt_sum += yt
+    mean_y = yt_sum / len(y_true)
+    for yt in y_true:
+        ss_tot += (yt - mean_y) ** 2
+    return 1 - (ss_res / ss_tot) if ss_tot != 0 else 0.0
+
+
+def train_model(dataset):
     learning_rate = 0.1
     theta0, theta1 = 0.0, 0.0
     max_epoch = 1000
-    update_every = 5
+
     kms = [d[0] for d in dataset]
     prices = [d[1] for d in dataset]
-    losses = []
 
     dataset, km_min, km_max, price_min, price_max = normalize_dataset(dataset, kms, prices)
-    if plot:
-        fig, ax1, ax2 = init_plot()
 
-    for epoch in range(max_epoch + 1):
+    for _ in range(max_epoch + 1):
 
         # Update the parameters θ0 and θ1 using gradient descent
-        theta0, theta1 = update_thetas(dataset, learning_rate, theta0, theta1)
+        tmp_theta0, tmp_theta1 = update_thetas(dataset, learning_rate, theta0, theta1)
+        # θ0 := θ0 - η * ∂J/∂θ0
+        theta0 -= tmp_theta0
+        # θ1 := θ1 - η * ∂J/∂θ1
+        theta1 -= tmp_theta1
 
-
-        if plot:
-            losses.append(compute_mse(dataset, theta0, theta1))
-            if epoch % update_every == 0 or epoch == max_epoch:
-                if not plt.fignum_exists(fig.number):
-                    print("\nWindow closed by user, stopping training...")
-                    sys.exit(0)
-                t0_plot, t1_plot = denormalize_theta(theta0, theta1, km_min, km_max, price_min, price_max)
-                update_plot(ax1, ax2, kms, prices, losses, t0_plot, t1_plot, epoch, max_epoch)
-
-    if plot:
-        plt.ioff()
-        plt.show()
-
-    return denormalize_theta(theta0, theta1, km_min, km_max, price_min, price_max)
+    return denormalize_thetas(theta0, theta1, km_min, km_max, price_min, price_max)
 
 
 def save_thetas(theta0, theta1):
@@ -162,8 +127,7 @@ def save_thetas(theta0, theta1):
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a linear regression model.")
     parser.add_argument("dataset_path", type=str, help="Path to the CSV dataset.")
-    parser.add_argument("--plot", action="store_true", help="Display the regression in real-time.")
-    if len(sys.argv) == 1 or len(sys.argv) > 3:
+    if len(sys.argv) == 1 or len(sys.argv) > 2:
         parser.print_help()
         sys.exit(1)
     return parser.parse_args()
@@ -172,7 +136,7 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
     dataset = read_dataset(args.dataset_path)
-    theta0, theta1 = train_model(dataset, plot=args.plot)
+    theta0, theta1 = train_model(dataset)
     print(f"theta0: {theta0}, theta1: {theta1}")
     save_thetas(theta0, theta1)
 

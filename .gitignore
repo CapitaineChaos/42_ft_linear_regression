@@ -8,10 +8,8 @@ __pycache__/
 .venv/
 
 # Model weights
-mandatory/theta0
-mandatory/theta1
-bonus/theta0
-bonus/theta1
+**/theta0
+**/theta1
 
 # Editors
 .vscode/

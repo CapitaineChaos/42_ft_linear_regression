@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
+# Made by Claude Opus 4.6
+
 """
 md_to_pdf.py — Convertit un fichier Markdown en PDF via Google Chrome headless.
 
-Dépendances : google-chrome (installé), pas de pip requis.
+Dépendances : google-chrome (installé).
 Rendu des équations : KaTeX ($$...$$ et $...$).
 Rendu Markdown     : marked.js.
-Les deux librairies sont chargées depuis un CDN (connexion internet requise).
+Les deux librairies sont chargées depuis un CDN.
 
 Usage :
     ./scripts/md_to_pdf.py <input.md> [output.pdf]
@@ -128,7 +130,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <div id="content"></div>
   <script>
     const md = `__MD_CONTENT__`;
-    document.getElementById("content").innerHTML = marked.parse(md);
+
+    // Protège les blocs mathématiques avant le parsing Markdown.
+    // Sans ça, marked.js interprète l'opérateur "=" seul sur une ligne
+    // comme un titre setext (h1), cassant les équations multi-lignes.
+    const _ms = [];
+    const _svm = m => { _ms.push(m); return `<math-ph n="${_ms.length - 1}"></math-ph>`; };
+    const mdSafe = md
+      .replace(/\\$\\$[\\s\\S]*?\\$\\$/g, _svm)   // display math  $$...$$
+      .replace(/\\$[^\\$\\n]+?\\$/g,      _svm);   // inline math    $...$
+
+    let htmlContent = marked.parse(mdSafe);
+
+    // Restaure les expressions mathématiques dans le HTML produit
+    htmlContent = htmlContent.replace(
+      /<math-ph n="(\\d+)"><\\/math-ph>/g,
+      (_, i) => _ms[+i]
+    );
+
+    document.getElementById("content").innerHTML = htmlContent;
   </script>
 </body>
 </html>
@@ -156,7 +176,7 @@ cmd = [
     "--disable-gpu",
     "--disable-dev-shm-usage",
     "--run-all-compositors",
-    "--virtual-time-budget=6000",   # laisse 6 s au JS (marked + KaTeX) pour s'exécuter
+    "--virtual-time-budget=10000",  # laisse 10 s au JS (marked + KaTeX + restoration math) pour s'exécuter
     f"--print-to-pdf={output_abs}",
     "--no-pdf-header-footer",        # pas d'en-tête/pied Chrome (URL, date, etc.)
     file_url,
