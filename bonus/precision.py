@@ -14,6 +14,10 @@ def estimate_price(km, theta0, theta1):
 
 
 # Calculate R² score
+# R² stands for "coefficient of determination" and is a measure of how well the model fits the data.
+# R² = 1 - (SS_res / SS_tot), where:
+# - SS_res is the sum of squares of residuals: Σ(yᵢ - ŷᵢ)², where yᵢ is the actual value and ŷᵢ is the predicted value.
+# - SS_tot is the total sum of squares: Σ(yᵢ - ȳ)², where ȳ is the mean of the actual values.
 def calculate_r2_score(dataset, theta0, theta1):
     y_true = [price for _, price in dataset]
     y_pred = [estimate_price(km, theta0, theta1) for km, _ in dataset]

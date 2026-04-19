@@ -7,7 +7,6 @@ import argparse
 import sys
 import os
 import signal
-import matplotlib.pyplot as plt
 
 def handler(sig, frame):
     print("\nInterrupt received, stopping training...")

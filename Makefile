@@ -9,42 +9,46 @@ BONUS_DIR     := bonus
 ARGS   := $(filter-out predict,$(MAKECMDGOALS))
 _NARG  := $(filter-out test-bonus-weird test-weird,$(MAKECMDGOALS))
 
-.PHONY: all venv install train predict clean fclean re test-weird test-bonus-weird
+.PHONY: all venv install install-mandatory install-bonus train predict clean fclean re test-weird test-bonus-weird
 
-all: install
+all: install-mandatory install-bonus
 
 $(VENV)/bin/activate:
 	python3 -m venv $(VENV)
 
 venv: $(VENV)/bin/activate
 
-install: venv
+install-mandatory: venv
 	$(PIP) install --quiet --upgrade pip
-	$(PIP) install --quiet -r requirements.txt
+	$(PIP) install --quiet -r $(MANDATORY_DIR)/requirements.txt
+
+install-bonus: venv
+	$(PIP) install --quiet --upgrade pip
+	$(PIP) install --quiet -r $(BONUS_DIR)/requirements.txt
 
 # oxxxxxxx[======== Mandatory part ==========>
 
-train: install
+train: install-mandatory
 	@cd $(MANDATORY_DIR) && ../$(PYTHON) train.py ../$(DATA) || true
 
-predict: install
+predict: install-mandatory
 	@cd $(MANDATORY_DIR) && ../$(PYTHON) predict.py $(ARGS) || true
+
+test-weird: install-mandatory
+	@cd $(MANDATORY_DIR) && ../$(PYTHON) train.py ../data/weird_$(_NARG).csv || true
 
 # oxxxxxxx[======== Bonus part ==============>
 
-train-bonus: install
+train-bonus: install-bonus
 	@cd $(BONUS_DIR) && ../$(PYTHON) train.py ../$(DATA) || true
 
-test-bonus-weird: install
+test-bonus-weird: install-bonus
 	@cd $(BONUS_DIR) && ../$(PYTHON) train.py ../data/weird_$(_NARG).csv || true
 
-test-weird: install
-	@cd $(MANDATORY_DIR) && ../$(PYTHON) train.py ../data/weird_$(_NARG).csv || true
-
-predict-bonus: install
+predict-bonus: install-bonus
 	@cd $(BONUS_DIR) && ../$(PYTHON) predict.py $(ARGS) || true
 
-precision-bonus: install
+precision-bonus: install-bonus
 	@cd $(BONUS_DIR) && ../$(PYTHON) precision.py ../$(DATA) || true
 
 # ==============================================================================

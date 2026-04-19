@@ -10,6 +10,7 @@ import os
 import signal
 import matplotlib.pyplot as plt
 
+
 def handler(sig, frame):
     print("\nInterrupt received, stopping training...")
     sys.exit(0)
@@ -19,41 +20,60 @@ def init_plot(title):
     plt.ion()
     fig = plt.figure(figsize=(16, 10))
     fig.canvas.manager.set_window_title(title)
+
+    # Create 4 subplots:
+    # (cols, rows, index) 
     ax1 = fig.add_subplot(2, 2, 1)
     ax2 = fig.add_subplot(2, 2, 2)
     ax3 = fig.add_subplot(2, 2, 3)
     ax4 = fig.add_subplot(2, 2, 4)
-    fig.subplots_adjust(left=0.07, right=0.97, top=0.88, bottom=0.08, wspace=0.35, hspace=0.4)
+    fig.subplots_adjust(left=0.07, right=0.97, top=0.92, bottom=0.05, wspace=0.18, hspace=0.28)
     return fig, ax1, ax2, ax3, ax4
 
 
 def precompute_cost_grid(norm_dataset, n=70):
+    # Range of θ₀: [-0.5, 1.5]
     t0_vals = [-0.5 + 2.0 * j / (n - 1) for j in range(n)]
+    # Range of θ₁: [-2.0, 1.0]
     t1_vals = [-2.0 + 3.0 * i / (n - 1) for i in range(n)]
+    # Create a grid of θ₀
     T0 = [[t0_vals[j] for j in range(n)] for _ in range(n)]
+    # Create a grid of θ₁
     T1 = [[t1_vals[i] for _ in range(n)] for i in range(n)]
+    # Compute the cost J for each pair (θ₀, θ₁) in the grid
+    # Take the logarithm to reduce the range of values for better visualization
     J = [[math.log(compute_cost(norm_dataset, T0[i][j], T1[i][j]) + 1e-10)
           for j in range(n)] for i in range(n)]
     return T0, T1, J
 
 
-def update_plot(ax1, ax2, ax3, ax4, kms, prices, losses, r2_history, theta0, theta1, epoch, nb_epochs, history, cost_grid):
-    current_loss = losses[-1] if losses else 0.0
-    current_r2 = r2_history[-1] if r2_history else 0.0
+def update_plot1(ax1, kms, prices, theta0, theta1, epoch, nb_epochs):
     ax1.clear()
-    ax2.clear()
-    ax3.clear()
-    ax4.clear()
-
     ax1.get_figure().suptitle(f'Epoch {epoch:,} / {nb_epochs:,}', fontsize=13, fontweight='bold')
-    ax1.scatter(kms, prices, alpha=0.6, label='Dataset')
+    for km, price in zip(kms, prices):
+        predicted = estimate_price(km, theta0, theta1)
+        color = 'green' if price >= predicted else 'red'
+        ax1.plot([km, km], [price, predicted], color=color, linewidth=0.8, alpha=0.6)
+    ax1.scatter(kms, prices, alpha=0.6, zorder=3, label='Dataset')
     x_line = [min(kms), max(kms)]
-    ax1.plot(x_line, [estimate_price(x, theta0, theta1) for x in x_line], 'r-', label=f'θ₀ = {theta0:.1f} θ₁ = {theta1:.6f}')
+    ax1.plot(x_line, [estimate_price(x, theta0, theta1) for x in x_line], 'b-', label='ŷ = θ₀ + θ₁·x')
+    ax1.plot([], [], ' ', label=f'θ₀ = {theta0:.4f}')
+    ax1.plot([], [], ' ', label=f'θ₁ = {theta1:.6f}')
+    # ME stands for "Mean Error", and is the average of the differences between the predicted prices and the actual prices.
+    # ME = (1 / m) * Σ(hθ​(xᵢ) - ŷᵢ)
+    me = 0.0
+    for km, price in zip(kms, prices):
+        me += price - estimate_price(km, theta0, theta1)
+    me /= len(kms)
     ax1.set_xlabel('Mileage (km)')
     ax1.set_ylabel('Price')
-    ax1.set_title('Linear Regression')
-    ax1.legend()
+    ax1.set_title(f'Linear Regression  -  ME = {me:.2f}')
+    ax1.legend(fontsize=7)
 
+
+def update_plot2(ax2, losses, nb_epochs):
+    current_loss = losses[-1] if losses else 0.0
+    ax2.clear()
     ax2.plot(losses, 'b-', label=f'MSE = {current_loss:.6f}')
     ax2.set_xlim(0, nb_epochs)
     upper = max(losses) * 1.1 if losses and max(losses) > 0 else 1
@@ -61,20 +81,27 @@ def update_plot(ax1, ax2, ax3, ax4, kms, prices, losses, r2_history, theta0, the
     ax2.set_xlabel('Epoch')
     ax2.set_ylabel('MSE')
     ax2.set_title('Loss Curve')
-    ax2.legend()
+    ax2.legend(fontsize=7)
 
+
+def update_plot3(ax3, history, cost_grid):
+    ax3.clear()
     T0, T1, J_grid = cost_grid
     h_t0 = [h[0] for h in history]
     h_t1 = [h[1] for h in history]
-    ax3.contour(T0, T1, J_grid, levels=20, cmap='plasma', linewidths=0.8)
-    ax3.plot(h_t0, h_t1, 'r.-', markersize=2, label='Gradient descent path')
+    ax3.contour(T0, T1, J_grid, levels=20, cmap='plasma', linewidths=0.5)
+    ax3.plot(h_t0, h_t1, 'r.-', markersize=1, label='Gradient descent path')
     ax3.scatter(h_t0[0], h_t1[0], c='blue', s=50, zorder=5, label='Start')
     ax3.scatter(h_t0[-1], h_t1[-1], c='red', s=50, zorder=5, label='Current')
     ax3.set_xlabel('θ₀ (normalised)')
     ax3.set_ylabel('θ₁ (normalised)')
-    ax3.set_title('Parameters space (J isolines)')
+    ax3.set_title('Contour plot gradient descent path')
     ax3.legend(fontsize=7)
 
+
+def update_plot4(ax4, r2_history, nb_epochs):
+    ax4.clear()
+    current_r2 = r2_history[-1] if r2_history else 0.0
     ax4.plot(r2_history, 'g-', label=f'R² = {current_r2:.6f}')
     ax4.set_xlim(0, nb_epochs)
     # No needs to see negative R² values, and R² > 1 is not possible
@@ -83,9 +110,15 @@ def update_plot(ax1, ax2, ax3, ax4, kms, prices, losses, r2_history, theta0, the
     ax4.set_xlabel('Epoch')
     ax4.set_ylabel('R²')
     ax4.set_title('Coefficient of determination R²')
-    ax4.legend()
+    ax4.legend(fontsize=7)
 
-    plt.pause(0.01)
+
+def update_plot(ax1, ax2, ax3, ax4, kms, prices, losses, r2_history, theta0, theta1, epoch, nb_epochs, history, cost_grid):
+    update_plot1(ax1, kms, prices, theta0, theta1, epoch, nb_epochs)
+    update_plot2(ax2, losses, nb_epochs)
+    update_plot3(ax3, history, cost_grid)
+    update_plot4(ax4, r2_history, nb_epochs)
+    plt.pause(0.005)
 
 
 def read_dataset(dataset_path):
@@ -165,10 +198,10 @@ def normalize_dataset(dataset, kms, prices):
 
 
 def denormalize_thetas(theta0, theta1, km_min, km_max, price_min, price_max):
-    # Degenerate case: all prices are identical → constant model, slope is 0
+    # Degenerate case: all prices are identical -> constant model, slope is 0
     if price_max == price_min:
         return price_min, 0.0
-    # Degenerate case: all kms are identical → slope not identifiable, intercept is mean price
+    # Degenerate case: all kms are identical -> slope not identifiable, intercept is mean price
     if km_max == km_min:
         return (price_min + price_max) / 2.0, 0.0
     theta1_denorm = theta1 * (price_max - price_min) / (km_max - km_min)
@@ -195,11 +228,11 @@ def calculate_r2_score(dataset, theta0, theta1):
 
 
 def train_model(dataset, dataset_path):
-    learning_rate = 0.1
+    learning_rate = 0.15
     theta0, theta1 = 0.0, 0.0
     history = [(theta0, theta1)]
-    nb_epochs = 1000
-    update_every = 10
+    nb_epochs = 1200
+    update_every = 20
     kms = [d[0] for d in dataset]
     prices = [d[1] for d in dataset]
     losses = []

@@ -1,11 +1,12 @@
-# Titre
+# Usage of ft_linear_regression
+  
+  
 
+---
+# Normal
+  
 
-# Tests
-
-## Normal
-
-### Mandatory
+## Mandatory
 
 ```bash
 # Train model
@@ -17,7 +18,7 @@ make train
 make predict 35000
 ```
 
-### Bonus
+## Bonus
 
 ```bash
 # Train model (bonus part)
@@ -33,10 +34,13 @@ make predict-bonus
 # Calculate the precision of the algorithme
 make precision-bonus
 ```
+  
 
-## Abnormal
+---
+# Abnormal
+  
 
-### Mandatory
+## Mandatory
 
 ```bash
 # Train model with weird  or inappropriate dataset
@@ -44,7 +48,7 @@ make precision-bonus
 make train-weird 1
 ```
 
-### Bonus
+## Bonus
 ```bash
 # Train model with weird  or inappropriate dataset (bonus part)
 # 1 to 5
