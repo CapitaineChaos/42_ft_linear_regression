@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Assisted-by: CLAUDE_SONNET:4.6_HIGH
+# Assisted-by: CLAUDE_SONNET:4.6_HIGH / GPT:5.4_THINKING
 
 # Usage : ./precision.py ../data/data.csv
 

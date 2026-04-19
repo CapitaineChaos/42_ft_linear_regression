@@ -53,6 +53,6 @@ if __name__ == "__main__":
     if predicted_price < 0:
         print("Warning: Predicted price is negative, the km value may be out of the range of the training data.")
         sys.exit(1)
-    
+        
     # When talking about price and kilometers for cars, no need decimals
     print(f"Predicted price for a car with {int(km_value)} km: {int(predicted_price)}")

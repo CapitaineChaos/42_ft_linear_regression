@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
-# Assisted-by: CLAUDE_SONNET:4.6_HIGH
+# Assisted-by: CLAUDE_SONNET:4.6_HIGH / GPT:5.4_THINKING
 
 # Usage : ./train.py ../data/data.csv
 
 import argparse
 import sys
 import os
+import signal
 import matplotlib.pyplot as plt
+
+def handler(sig, frame):
+    print("\nInterrupt received, stopping training...")
+    sys.exit(0)
 
 
 def read_dataset(dataset_path):
@@ -32,31 +37,31 @@ def read_dataset(dataset_path):
 
 
 # h stands for "hypothesis", and is the function we want to fit to the data.
-# In our case, it's a linear function of the form hθ​(x) = θ0 + θ1 * x, where θ0 is the intercept and θ1 is the slope.
-# hθ​(x) = θ0 + θ1 * x
+# In our case, it's a linear function of the form hθ​(x) = θ₀ + θ₁ * x, where θ₀ is the intercept and θ₁ is the slope.
+# hθ​(x) = θ₀ + θ₁ * x
 def estimate_price(km, theta0, theta1):
     return theta0 + theta1 * km
 
 
 def update_thetas(dataset, learning_rate, theta0, theta1):
     # J stands for "cost function" or "loss function", and is a measure of how well the model fits the data.
-    # J(θ0, θ1) = (1/2m) * Σ(hθ​(xᵢ) - yᵢ)², where hθ​(xᵢ) = θ0 + θ1 * xᵢ ('2' is for the derivative to be simpler)
+    # J(θ₀, θ₁) = (1/2m) * Σ(hθ​(xᵢ) - yᵢ)², where hθ​(xᵢ) = θ₀ + θ₁ * xᵢ ('2' is for the derivative to be simpler)
     # ∇ stands for "gradient", and is a vector that points in the direction of the steepest increase of the cost function.
-    # ∇J(θ0, θ1) = (∂J/∂θ0, ∂J/∂θ1)
-    # ∂J/∂θ0 = (1/m) * Σ(hθ​(xᵢ) - yᵢ)
-    # ∂J/∂θ1 = (1/m) * Σ(hθ​(xᵢ) - yᵢ) * xᵢ
+    # ∇J(θ₀, θ₁) = (∂J/∂θ₀, ∂J/∂θ₁)
+    # ∂J/∂θ₀ = (1/m) * Σ(hθ​(xᵢ) - yᵢ)
+    # ∂J/∂θ₁ = (1/m) * Σ(hθ​(xᵢ) - yᵢ) * xᵢ
     m = len(dataset)
     sum0, sum1 = 0.0, 0.0
     tmp_theta0, tmp_theta1 = 0.0, 0.0
     for km, price in dataset:
-        # error = hθ​(xᵢ) - yᵢ = (θ0 + θ1 * xᵢ) - yᵢ
+        # error = hθ​(xᵢ) - yᵢ = (θ₀ + θ₁ * xᵢ) - yᵢ
         # error is the difference between the predicted price and the actual price for each data point
         error = estimate_price(km, theta0, theta1) - price
         sum0 += error
         sum1 += error * km
-    # tmpθ0 = η * ∂J/∂θ0
+    # tmpθ₀ = η * ∂J/∂θ₀
     tmp_theta0 = learning_rate / m * sum0
-    # tmpθ1 = η * ∂J/∂θ1
+    # tmpθ₁ = η * ∂J/∂θ₁
     tmp_theta1 = learning_rate / m * sum1
     return tmp_theta0, tmp_theta1
 
@@ -112,11 +117,11 @@ def train_model(dataset):
 
     for _ in range(1, nb_epochs + 1):
 
-        # Update the parameters θ0 and θ1 using gradient descent
+        # Update the parameters θ₀ and θ₁ using gradient descent
         tmp_theta0, tmp_theta1 = update_thetas(dataset, learning_rate, theta0, theta1)
-        # θ0 := θ0 - η * ∂J/∂θ0
+        # θ₀ := θ₀ - η * ∂J/∂θ₀
         theta0 -= tmp_theta0
-        # θ1 := θ1 - η * ∂J/∂θ1
+        # θ₁ := θ₁ - η * ∂J/∂θ₁
         theta1 -= tmp_theta1
 
     return denormalize_thetas(theta0, theta1, km_min, km_max, price_min, price_max)
@@ -144,8 +149,9 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
+    signal.signal(signal.SIGINT, handler)
     dataset = read_dataset(args.dataset_path)
     theta0, theta1 = train_model(dataset)
-    print(f"theta0: {theta0}, theta1: {theta1}")
+    print(f"θ₀: {theta0}, θ₁: {theta1}")
     save_thetas(theta0, theta1)
 
