@@ -25,7 +25,16 @@ train: install
 	@cd $(MANDATORY_DIR) && ../$(PYTHON) train.py ../$(DATA) || true
 
 train-plot: install
-	@cd $(BONUS_DIR) && ../$(PYTHON) train.py ../$(DATA) --plot || true
+	@cd $(BONUS_DIR) && ../$(PYTHON) train.py ../$(DATA) || true
+
+train-plot-test1: install
+	@cd $(BONUS_DIR) && ../$(PYTHON) train.py ../data/weird_1.csv || true
+
+train-plot-test2: install
+	@cd $(BONUS_DIR) && ../$(PYTHON) train.py ../data/weird_2.csv || true
+
+train-plot-test3: install
+	@cd $(BONUS_DIR) && ../$(PYTHON) train.py ../data/weird_3.csv || true
 
 predict: install
 	@cd $(MANDATORY_DIR) && ../$(PYTHON) predict.py $(ARGS) || true

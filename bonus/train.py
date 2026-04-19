@@ -5,6 +5,8 @@
 
 import argparse
 import sys
+import math
+import os
 import matplotlib.pyplot as plt
 
 
@@ -19,7 +21,17 @@ def init_plot():
     return fig, ax1, ax2, ax3, ax4
 
 
-def update_plot(ax1, ax2, ax3, ax4, kms, prices, losses, r2_history, theta0, theta1, epoch, max_epoch, history):
+def precompute_cost_grid(norm_dataset, n=70):
+    t0_vals = [-0.5 + 2.0 * j / (n - 1) for j in range(n)]  # linspace(-0.5, 1.5)
+    t1_vals = [-2.0 + 3.0 * i / (n - 1) for i in range(n)]  # linspace(-2.0, 1.0)
+    T0 = [[t0_vals[j] for j in range(n)] for i in range(n)]
+    T1 = [[t1_vals[i] for j in range(n)] for i in range(n)]
+    J = [[math.log(compute_cost(norm_dataset, T0[i][j], T1[i][j]) + 1e-10)
+          for j in range(n)] for i in range(n)]
+    return T0, T1, J
+
+
+def update_plot(ax1, ax2, ax3, ax4, kms, prices, losses, r2_history, theta0, theta1, epoch, nb_epochs, history, cost_grid):
     current_loss = losses[-1] if losses else 0.0
     current_r2 = r2_history[-1] if r2_history else 0.0
     ax1.clear()
@@ -27,7 +39,7 @@ def update_plot(ax1, ax2, ax3, ax4, kms, prices, losses, r2_history, theta0, the
     ax3.clear()
     ax4.clear()
 
-    ax1.get_figure().suptitle(f'Epoch {epoch:,} / {max_epoch:,}', fontsize=13, fontweight='bold')
+    ax1.get_figure().suptitle(f'Epoch {epoch:,} / {nb_epochs:,}', fontsize=13, fontweight='bold')
     ax1.scatter(kms, prices, alpha=0.6, label='Dataset')
     x_line = [min(kms), max(kms)]
     ax1.plot(x_line, [estimate_price(x, theta0, theta1) for x in x_line], 'r-', label=f'θ₀ = {theta0:.1f} θ₁ = {theta1:.6f}')
@@ -37,36 +49,44 @@ def update_plot(ax1, ax2, ax3, ax4, kms, prices, losses, r2_history, theta0, the
     ax1.legend()
 
     ax2.plot(losses, 'b-', label=f'MSE = {current_loss:.6f}')
-    ax2.set_xlim(0, max_epoch)
-    ax2.set_ylim(0, max(losses) * 1.1 if losses else 1)
+    ax2.set_xlim(0, nb_epochs)
+    upper = max(losses) * 1.1 if losses and max(losses) > 0 else 1
+    ax2.set_ylim(0, upper)
     ax2.set_xlabel('Epoch')
     ax2.set_ylabel('MSE')
     ax2.set_title('Loss Curve')
     ax2.legend()
 
+    T0, T1, J_grid = cost_grid
     h_t0 = [h[0] for h in history]
     h_t1 = [h[1] for h in history]
+    ax3.contour(T0, T1, J_grid, levels=20, cmap='plasma', linewidths=0.8)
     ax3.plot(h_t0, h_t1, 'r.-', markersize=2, label='Gradient descent path')
-    ax3.scatter(h_t0[0], h_t1[0], c='green', s=40, label='Start')
-    ax3.scatter(h_t0[-1], h_t1[-1], c='blue', s=40, label='Current')
-    ax3.set_xlabel('θ₀')
-    ax3.set_ylabel('θ₁')
-    ax3.set_title('J(θ₀, θ₁)')
-    ax3.legend()
+    ax3.scatter(h_t0[0], h_t1[0], c='blue', s=50, zorder=5, label='Start')
+    ax3.scatter(h_t0[-1], h_t1[-1], c='red', s=50, zorder=5, label='Current')
+    ax3.set_xlabel('θ₀ (normalised)')
+    ax3.set_ylabel('θ₁ (normalised)')
+    ax3.set_title('Parameters space (J isolines)')
+    ax3.legend(fontsize=7)
 
     ax4.plot(r2_history, 'g-', label=f'R² = {current_r2:.6f}')
-    ax4.set_xlim(0, max_epoch)
-    ax4.set_ylim(-0.1, 1.05)
+    ax4.set_xlim(0, nb_epochs)
+    # No needs to see negative R² values, and R² > 1 is not possible
+    ax4.set_ylim(0, 1.05)
     ax4.axhline(1.0, color='gray', linestyle='--', linewidth=0.8)
     ax4.set_xlabel('Epoch')
     ax4.set_ylabel('R²')
     ax4.set_title('Coefficient of determination R²')
     ax4.legend()
 
-    plt.pause(0.001)
+    plt.pause(0.01)
 
 
 def read_dataset(dataset_path):
+    # If file not exists or is not readable, print an error message and exit
+    if not os.path.isfile(dataset_path) or not os.access(dataset_path, os.R_OK):
+        print(f"Error: file '{dataset_path}' does not exist or is not readable.")
+        sys.exit(1)
     dataset = []
     with open(dataset_path, 'r') as f:
         if f.readline().strip() != "km,price":
@@ -139,12 +159,15 @@ def normalize_dataset(dataset, kms, prices):
 
 
 def denormalize_thetas(theta0, theta1, km_min, km_max, price_min, price_max):
-    if km_max > km_min and price_max > price_min:
-        theta1_denorm = theta1 * (price_max - price_min) / (km_max - km_min)
-        theta0_denorm = price_min + theta0 * (price_max - price_min) - theta1_denorm * km_min
-        return theta0_denorm, theta1_denorm
-    else:
-        return theta0, theta1
+    # Degenerate case: all prices are identical → constant model, slope is 0
+    if price_max == price_min:
+        return price_min, 0.0
+    # Degenerate case: all kms are identical → slope not identifiable, intercept is mean price
+    if km_max == km_min:
+        return (price_min + price_max) / 2.0, 0.0
+    theta1_denorm = theta1 * (price_max - price_min) / (km_max - km_min)
+    theta0_denorm = price_min + theta0 * (price_max - price_min) - theta1_denorm * km_min
+    return theta0_denorm, theta1_denorm
 
 
 # Calculate R² score
@@ -169,8 +192,8 @@ def train_model(dataset):
     learning_rate = 0.1
     theta0, theta1 = 0.0, 0.0
     history = [(theta0, theta1)]
-    max_epoch = 1000
-    update_every = 5
+    nb_epochs = 1000
+    update_every = 10
     kms = [d[0] for d in dataset]
     prices = [d[1] for d in dataset]
     losses = []
@@ -178,9 +201,10 @@ def train_model(dataset):
 
     dataset, km_min, km_max, price_min, price_max = normalize_dataset(dataset, kms, prices)
 
+    cost_grid = precompute_cost_grid(dataset)
     fig, ax1, ax2, ax3, ax4 = init_plot()
 
-    for epoch in range(max_epoch + 1):
+    for epoch in range(1, nb_epochs + 1):
 
         # Update the parameters θ0 and θ1 using gradient descent
         tmp_theta0, tmp_theta1 = update_thetas(dataset, learning_rate, theta0, theta1)
@@ -199,11 +223,11 @@ def train_model(dataset):
         real_dataset = list(zip(kms, prices))
         # Save the current R² score history for plotting
         r2_history.append(calculate_r2_score(real_dataset, t0_plot, t1_plot))
-        if epoch % update_every == 0 or epoch == max_epoch:
+        if epoch % update_every == 0 or epoch == nb_epochs:
             if not plt.fignum_exists(fig.number):
                 print("\nWindow closed by user, stopping training...")
                 sys.exit(0)
-            update_plot(ax1, ax2, ax3, ax4, kms, prices, losses, r2_history, t0_plot, t1_plot, epoch, max_epoch, history)
+            update_plot(ax1, ax2, ax3, ax4, kms, prices, losses, r2_history, t0_plot, t1_plot, epoch, nb_epochs, history, cost_grid)
 
     # After training is complete, keep the final plot open until the user closes it
     plt.ioff()
@@ -213,17 +237,20 @@ def train_model(dataset):
 
 
 def save_thetas(theta0, theta1):
-    with open("theta0", "w") as f:
-        f.write(str(theta0))
-    with open("theta1", "w") as f:
-        f.write(str(theta1))
+    try:
+        with open("theta0", "w") as f:
+            f.write(str(theta0))
+        with open("theta1", "w") as f:
+            f.write(str(theta1))
+    except IOError as e:
+        print(f"Error: could not save thetas to files: {e}")
+        sys.exit(1)
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a linear regression model.")
     parser.add_argument("dataset_path", type=str, help="Path to the CSV dataset.")
-    parser.add_argument("--plot", action="store_true", help="Display the regression in real-time.")
-    if len(sys.argv) == 1 or len(sys.argv) > 3:
+    if len(sys.argv) == 1 or len(sys.argv) > 2:
         parser.print_help()
         sys.exit(1)
     return parser.parse_args()

@@ -5,10 +5,15 @@
 
 import argparse
 import sys
+import os
 import matplotlib.pyplot as plt
 
 
 def read_dataset(dataset_path):
+    # If file not exists or is not readable, print an error message and exit
+    if not os.path.isfile(dataset_path) or not os.access(dataset_path, os.R_OK):
+        print(f"Error: file '{dataset_path}' does not exist or is not readable.")
+        sys.exit(1)
     dataset = []
     with open(dataset_path, 'r') as f:
         if f.readline().strip() != "km,price":
@@ -98,14 +103,14 @@ def calculate_r2_score(dataset, theta0, theta1):
 def train_model(dataset):
     learning_rate = 0.1
     theta0, theta1 = 0.0, 0.0
-    max_epoch = 1000
+    nb_epochs = 1000
 
     kms = [d[0] for d in dataset]
     prices = [d[1] for d in dataset]
 
     dataset, km_min, km_max, price_min, price_max = normalize_dataset(dataset, kms, prices)
 
-    for _ in range(max_epoch + 1):
+    for _ in range(1, nb_epochs + 1):
 
         # Update the parameters θ0 and θ1 using gradient descent
         tmp_theta0, tmp_theta1 = update_thetas(dataset, learning_rate, theta0, theta1)
@@ -118,10 +123,14 @@ def train_model(dataset):
 
 
 def save_thetas(theta0, theta1):
-    with open("theta0", "w") as f:
-        f.write(str(theta0))
-    with open("theta1", "w") as f:
-        f.write(str(theta1))
+    try:
+        with open("theta0", "w") as f:
+            f.write(str(theta0))
+        with open("theta1", "w") as f:
+            f.write(str(theta1))
+    except IOError as e:
+        print(f"Error: could not save thetas to files: {e}")
+        sys.exit(1)
 
 
 def parse_args():

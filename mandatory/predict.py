@@ -5,8 +5,11 @@
 
 import argparse
 import sys
+import os
 
 def read_theta(filename):
+    if not os.path.isfile(filename) or not os.access(filename, os.R_OK):
+        return None
     with open(filename, 'r') as f:
         return float(f.read().strip())
 

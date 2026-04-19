@@ -6,6 +6,7 @@
 
 import argparse
 import sys
+import os
 
 
 def estimate_price(km, theta0, theta1):
@@ -31,11 +32,17 @@ def calculate_r2_score(dataset, theta0, theta1):
 
 
 def read_theta(filename):
+    if not os.path.isfile(filename) or not os.access(filename, os.R_OK):
+        return None
     with open(filename, 'r') as f:
         return float(f.read().strip())
 
 
 def read_dataset(dataset_path):
+    # If file not exists or is not readable, print an error message and exit
+    if not os.path.isfile(dataset_path) or not os.access(dataset_path, os.R_OK):
+        print(f"Error: file '{dataset_path}' does not exist or is not readable.")
+        sys.exit(1)
     dataset = []
     with open(dataset_path, 'r') as f:
         if f.readline().strip() != "km,price":
