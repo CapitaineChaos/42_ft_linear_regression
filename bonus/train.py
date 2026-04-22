@@ -272,9 +272,9 @@ def train_model(dataset, dataset_path):
                 print("\nWindow closed by user, stopping training...")
                 sys.exit(0)
             update_plot(ax1, ax2, ax3, ax4, kms, prices, losses, r2_history, t0_plot, t1_plot, epoch, nb_epochs, history, cost_grid)
-
-    # After training is complete, keep the final plot open until the user closes it
+    # Interactive mode off
     plt.ioff()
+    # After training is complete, keep the final plot open until the user closes it
     plt.show()
 
     return denormalize_thetas(theta0, theta1, km_min, km_max, price_min, price_max)
