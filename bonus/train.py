@@ -8,6 +8,8 @@ import sys
 import math
 import os
 import signal
+import matplotlib
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 
 
@@ -17,6 +19,7 @@ def handler(sig, frame):
 
 
 def init_plot(title):
+    # Enable the interactive mode in Matplotlib
     plt.ion()
     fig = plt.figure(figsize=(16, 10))
     fig.canvas.manager.set_window_title(title)

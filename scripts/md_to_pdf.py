@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # Made by Claude Opus 4.6
+# Tinkered by Claude Sonnet 4.6
 
 """
-md_to_pdf.py — Convertit un fichier Markdown en PDF via Google Chrome headless.
+md_to_pdf.py — Convertit un fichier Markdown en PDF via Playwright (Chromium headless).
 
-Dépendances : google-chrome (installé).
+Dépendances : playwright (pip) + chromium installé via playwright.
 Rendu des équations : KaTeX ($$...$$ et $...$).
 Rendu Markdown     : marked.js.
 Les deux librairies sont chargées depuis un CDN.
@@ -22,7 +23,7 @@ import os
 import tempfile
 import subprocess
 
-# ── Arguments ────────────────────────────────────────────────────────────────
+# ── Arguments ─────────────────────────────────────────────────────────────────
 
 if len(sys.argv) < 2:
     print(__doc__)
@@ -164,33 +165,37 @@ tmp.flush()
 tmp.close()
 tmp_path = tmp.name
 
-# ── Conversion via Chrome headless ────────────────────────────────────────────
+# ── Conversion via Playwright (Chromium headless) ───────────────────────────
 
 output_abs = os.path.abspath(output_pdf)
-file_url   = f"file://{tmp_path}"
 
-cmd = [
-    "google-chrome",
-    "--headless=new",          # nouveau moteur headless (Chrome >= 112)
-    "--no-sandbox",
-    "--disable-gpu",
-    "--disable-dev-shm-usage",
-    "--run-all-compositors",
-    "--virtual-time-budget=10000",  # laisse 10 s au JS (marked + KaTeX + restoration math) pour s'exécuter
-    f"--print-to-pdf={output_abs}",
-    "--no-pdf-header-footer",        # pas d'en-tête/pied Chrome (URL, date, etc.)
-    file_url,
-]
+# Auto-install playwright + chromium dans le même Python si absent
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    print("Installation de playwright dans le venv courant...")
+    subprocess.run([sys.executable, "-m", "pip", "install", "--quiet", "playwright"], check=True)
+    subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True)
+    import importlib, importlib.util
+    importlib.invalidate_caches()
+    from playwright.sync_api import sync_playwright
 
 print(f"Conversion : {input_md}  →  {output_pdf}")
-result = subprocess.run(cmd, capture_output=True, text=True)
+
+with sync_playwright() as pw:
+    browser = pw.chromium.launch()
+    page = browser.new_page()
+    page.goto(f"file://{tmp_path}", wait_until="networkidle")
+    page.pdf(path=output_abs, print_background=True,
+             margin={"top": "20mm", "bottom": "20mm",
+                     "left": "18mm", "right": "18mm"})
+    browser.close()
 
 os.unlink(tmp_path)
 
-if result.returncode == 0:
+if os.path.isfile(output_abs):
     size_kb = os.path.getsize(output_abs) // 1024
     print(f"Succès — {output_pdf} ({size_kb} Ko)")
 else:
-    print("Erreur Chrome :", file=sys.stderr)
-    print(result.stderr[:800], file=sys.stderr)
+    print("Erreur : PDF non généré.", file=sys.stderr)
     sys.exit(1)

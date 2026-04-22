@@ -2,31 +2,30 @@
 
 ## Sommaire
 
-- [1. Objet du document](#1-objet-du-document)
-- [2. Cadre mathématique](#2-cadre-mathématique)
-- [3. Lexique des termes employés](#3-lexique-des-termes-employés)
-- [4. Lexique des symboles](#4-lexique-des-symboles)
-- [5. Modèle de régression linéaire simple](#5-modèle-de-régression-linéaire-simple)
-- [6. Erreur ponctuelle, MSE et fonction de coût](#6-erreur-ponctuelle-mse-et-fonction-de-coût)
-- [7. Interprétation géométrique dans l’espace des paramètres](#7-interprétation-géométrique-dans-lespace-des-paramètres)
-- [8. Développement complet de la fonction de coût](#8-développement-complet-de-la-fonction-de-coût)
-- [9. Gradient de la fonction de coût](#9-gradient-de-la-fonction-de-coût)
-- [10. Mini-cours sur la matrice hessienne](#10-mini-cours-sur-la-matrice-hessienne)
-- [11. Forme des courbes de niveau](#11-forme-des-courbes-de-niveau)
-- [12. Inclinaison des ellipses](#12-inclinaison-des-ellipses)
-- [13. Allongement des ellipses](#13-allongement-des-ellipses)
-- [14. Minimum global et point optimal](#14-minimum-global-et-point-optimal)
-- [15. Descente de gradient](#15-descente-de-gradient)
-- [16. Sens géométrique de la trajectoire](#16-sens-géométrique-de-la-trajectoire)
-- [17. Construction d’un contour plot](#17-construction-dun-contour-plot)
-- [18. Rôle du logarithme dans la représentation](#18-rôle-du-logarithme-dans-la-représentation)
-- [19. Effet de la normalisation des données](#19-effet-de-la-normalisation-des-données)
-- [20. Dé-normalisation des paramètres](#20-dé-normalisation-des-paramètres)
-- [21. Lecture scientifique du graphique obtenu](#21-lecture-scientifique-du-graphique-obtenu)
-- [22. Formules à retenir](#22-formules-à-retenir)
+- [1. Objet du document](#s1)
+- [2. Cadre mathématique](#s2)
+- [3. Lexique des termes employés](#s3)
+- [4. Lexique des symboles](#s4)
+- [5. Modèle de régression linéaire simple](#s5)
+- [6. Erreur ponctuelle, MSE et fonction de coût](#s6)
+- [7. Interprétation géométrique dans l’espace des paramètres](#s7)
+- [8. Développement complet de la fonction de coût](#s8)
+- [9. Gradient de la fonction de coût](#s9)
+- [10. Mini-cours sur la matrice hessienne](#s10)
+- [11. Forme des courbes de niveau](#s11)
+- [12. Minimum global et point optimal](#s12)
+- [13. Descente de gradient](#s13)
+- [14. Sens géométrique de la trajectoire](#s14)
+- [15. Construction d’un contour plot](#s15)
+- [16. Rôle du logarithme dans la représentation](#s16)
+- [17. Effet de la normalisation des données](#s17)
+- [18. Dé-normalisation des paramètres](#s18)
+- [19. Lecture scientifique du graphique obtenu](#s19)
+- [20. Formules à retenir](#s20)
 
 ---
 
+<a id="s1"></a>
 ## 1. Objet du document
 
 Présenter, dans le cadre de la régression linéaire simple, la construction mathématique d’un **contour plot** de la fonction de coût, puis l’interprétation de la **trajectoire de la descente de gradient** dans l’espace des paramètres.
@@ -35,6 +34,7 @@ Le graphique étudié ne représente pas les points du jeu de données dans le p
 
 ---
 
+<a id="s2"></a>
 ## 2. Cadre mathématique
 
 Considérer un ensemble de données
@@ -55,6 +55,7 @@ Le but de l’apprentissage consiste à déterminer des valeurs de $\theta_0$ et
 
 ---
 
+<a id="s3"></a>
 ## 3. Lexique des termes employés
 
 | Terme | Définition |
@@ -79,6 +80,7 @@ Le but de l’apprentissage consiste à déterminer des valeurs de $\theta_0$ et
 
 ---
 
+<a id="s4"></a>
 ## 4. Lexique des symboles
 
 | Symbole | Définition |
@@ -106,6 +108,7 @@ Le but de l’apprentissage consiste à déterminer des valeurs de $\theta_0$ et
 
 ---
 
+<a id="s5"></a>
 ## 5. Modèle de régression linéaire simple
 
 Le modèle affine étudié est
@@ -124,6 +127,7 @@ Le paramètre $\theta_0$ règle le décalage vertical de la droite. Le paramètr
 
 ---
 
+<a id="s6"></a>
 ## 6. Erreur ponctuelle, MSE et fonction de coût
 
 ### 6.1. Erreur ponctuelle
@@ -167,8 +171,8 @@ $$
 $$
 
 ---
-
-## 7. Interprétation géométrique dans l’espace des paramètres
+<a id="s7"></a>
+## 7. Interprétation géométrique dans l'espace des paramètres
 
 La fonction de coût dépend de deux variables : $\theta_0$ et $\theta_1$.
 
@@ -192,6 +196,7 @@ pour différentes constantes $c$.
 
 ---
 
+<a id="s8"></a>
 ## 8. Développement complet de la fonction de coût
 
 Partir de
@@ -284,6 +289,7 @@ Cette écriture montre explicitement que $J$ est un polynôme de degré $2$ en $
 
 ---
 
+<a id="s9"></a>
 ## 9. Gradient de la fonction de coût
 
 Le gradient est le vecteur des dérivées partielles premières.
@@ -331,6 +337,7 @@ Le gradient indique la direction locale de croissance la plus rapide de la fonct
 
 ---
 
+<a id="s10"></a>
 ## 10. Mini-cours sur la matrice hessienne
 
 ### 10.1. Définition générale
@@ -452,6 +459,7 @@ Si la hessienne est définie positive, la fonction de coût est strictement conv
 
 ---
 
+<a id="s11"></a>
 ## 11. Forme des courbes de niveau
 
 Considérer une équation de niveau
@@ -472,44 +480,11 @@ A
 + \text{termes affines} + \text{constante},
 $$
 
-avec $A$ symétrique définie positive, possède des courbes de niveau elliptiques.
-
-Conséquence géométrique immédiate : les courbes de niveau de la fonction de coût sont des ellipses concentriques autour du point optimal $(\theta_0^\star,\theta_1^\star)$.
+avec $A$ symétrique définie positive, possède des courbes de niveau elliptiques concentriques autour du point optimal $(\theta_0^\star,\theta_1^\star)$.
 
 ---
-
-## 12. Inclinaison des ellipses
-
-Dans l’expression développée de $J$, le terme
-
-$$
-\theta_0\theta_1\bar x
-$$
-
-est un terme croisé. Il exprime un couplage entre les variables $\theta_0$ et $\theta_1$.
-
-Lorsqu’un tel terme croisé est présent, les axes principaux des courbes de niveau ne coïncident généralement pas avec les axes du repère $(\theta_0,\theta_1)$.
-
-Si $\bar x = 0$, le terme croisé disparaît et les ellipses sont alignées avec les axes. Si $\bar x \neq 0$, elles sont généralement inclinées.
-
----
-
-## 13. Allongement des ellipses
-
-L’allongement dépend de l’intensité de la courbure selon les directions principales.
-
-Si la courbure était identique dans toutes les directions, les courbes de niveau seraient circulaires. Ici, les courbures sont différentes, ce qui produit des ellipses plus ou moins étirées.
-
-L’information est contenue dans les valeurs propres de la hessienne :
-
-- une grande valeur propre correspond à une direction de courbure forte ;
-- une petite valeur propre correspond à une direction de courbure faible.
-
-Une forte différence entre les deux valeurs propres produit une vallée étroite et allongée.
-
----
-
-## 14. Minimum global et point optimal
+<a id="s12"></a>
+## 12. Minimum global et point optimal
 
 Le point optimal est le couple $(\theta_0^\star,\theta_1^\star)$ où la fonction de coût est minimale.
 
@@ -524,10 +499,10 @@ Comme la fonction est strictement convexe lorsque les $x_i$ ne sont pas tous ég
 Toutes les courbes de niveau sont donc centrées autour de ce point.
 
 ---
+<a id="s13"></a>
+## 13. Descente de gradient
 
-## 15. Descente de gradient
-
-### 15.1. Principe
+### 13.1. Principe
 
 La descente de gradient construit une suite de paramètres
 
@@ -549,7 +524,7 @@ $$
 \theta_1^{(k+1)} = \theta_1^{(k)} - \eta\,\frac{\partial J}{\partial \theta_1}(\theta_0^{(k)},\theta_1^{(k)}).
 $$
 
-### 15.2. Forme explicite
+### 13.2. Forme explicite
 
 En remplaçant les dérivées par leurs expressions,
 
@@ -569,7 +544,7 @@ $$
 \right].
 $$
 
-### 15.3. Rôle du learning rate
+### 13.3. Rôle du learning rate
 
 Le paramètre $\eta$ règle l’amplitude du déplacement.
 
@@ -578,8 +553,8 @@ Le paramètre $\eta$ règle l’amplitude du déplacement.
 - si $\eta$ est trop grand, la trajectoire peut osciller ou diverger.
 
 ---
-
-## 16. Sens géométrique de la trajectoire
+<a id="s14"></a>
+## 14. Sens géométrique de la trajectoire
 
 Chaque itération de la descente de gradient fournit un nouveau point dans le plan $(\theta_0,\theta_1)$.
 
@@ -594,8 +569,8 @@ Sur le contour plot :
 Dans une vallée très allongée, la trajectoire peut présenter un mouvement de zigzag.
 
 ---
-
-## 17. Construction d’un contour plot
+<a id="s15"></a>
+## 15. Construction d'un contour plot
 
 La construction numérique suit les étapes suivantes.
 
@@ -646,8 +621,8 @@ Superposer les points successifs de la descente de gradient.
 Remarque : le choix du nombre de niveaux est un choix de visualisation. La géométrie générale de la surface de coût n’est pas arbitraire.
 
 ---
-
-## 18. Rôle du logarithme dans la représentation
+<a id="s16"></a>
+## 16. Rôle du logarithme dans la représentation
 
 Il est fréquent de représenter non pas directement $J$, mais
 
@@ -657,7 +632,7 @@ $$
 
 où $\varepsilon > 0$ est une très petite constante destinée à éviter le logarithme de zéro.
 
-### 18.1. Justification mathématique
+### 16.1. Justification mathématique
 
 Le logarithme est strictement croissant sur $\mathbb{R}_{>0}$. Donc, si
 
@@ -673,13 +648,13 @@ $$
 
 L’ordre des niveaux est conservé. Le minimum reste le minimum, et la structure générale des courbes de niveau est préservée.
 
-### 18.2. Justification visuelle
+### 16.2. Justification visuelle
 
 Lorsque les coûts sont très dispersés, le logarithme compresse les grandes valeurs et étale davantage les petites valeurs. La zone proche du minimum devient alors plus lisible.
 
 ---
-
-## 19. Effet de la normalisation des données
+<a id="s17"></a>
+## 17. Effet de la normalisation des données
 
 Supposer les transformations
 
@@ -701,8 +676,8 @@ Conséquences principales :
 Sans normalisation, la vallée de la fonction de coût peut être extrêmement allongée, ce qui rend l’optimisation plus délicate.
 
 ---
-
-## 20. Dé-normalisation des paramètres
+<a id="s18"></a>
+## 18. Dé-normalisation des paramètres
 
 Dans l’espace normalisé, le modèle s’écrit
 
@@ -759,8 +734,8 @@ $$
 $$
 
 ---
-
-## 21. Lecture scientifique du graphique obtenu
+<a id="s19"></a>
+## 19. Lecture scientifique du graphique obtenu
 
 Le contour plot accompagné de la trajectoire de la descente de gradient permet d’observer simultanément :
 
@@ -770,21 +745,21 @@ Le contour plot accompagné de la trajectoire de la descente de gradient permet 
 4. la qualité du choix du learning rate ;
 5. la stabilité ou l’instabilité de la convergence.
 
-### 21.1. Learning rate faible
+### 19.1. Learning rate faible
 
 La trajectoire progresse lentement vers le minimum.
 
-### 21.2. Learning rate adapté
+### 19.2. Learning rate adapté
 
 La trajectoire converge de manière stable vers le centre des ellipses.
 
-### 21.3. Learning rate excessif
+### 19.3. Learning rate excessif
 
 La trajectoire oscille de part et d’autre de la vallée ou diverge hors de la zone de stabilité.
 
 ---
-
-## 22. Formules à retenir
+<a id="s20"></a>
+## 20. Formules à retenir
 
 ### Modèle
 
