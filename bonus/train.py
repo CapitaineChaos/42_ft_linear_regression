@@ -246,6 +246,8 @@ def train_model(dataset, dataset_path):
     cost_grid = precompute_cost_grid(dataset)
     fig, ax1, ax2, ax3, ax4 = init_plot(os.path.basename(dataset_path))
 
+    update_plot(ax1, ax2, ax3, ax4, kms, prices, losses, r2_history, theta0, theta1, 0, nb_epochs, history, cost_grid)
+
     for epoch in range(1, nb_epochs + 1):
 
         # Update the parameters θ₀ and θ₁ using gradient descent
