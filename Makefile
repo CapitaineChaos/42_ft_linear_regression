@@ -6,7 +6,7 @@ DATA    := data/data.csv
 MANDATORY_DIR := mandatory
 BONUS_DIR     := bonus
 
-ARGS   := $(filter-out predict,$(MAKECMDGOALS))
+ARGS   := $(filter-out predict predict-bonus,$(MAKECMDGOALS))
 _NARG  := $(filter-out test-bonus-weird test-weird,$(MAKECMDGOALS))
 
 .PHONY: all venv install install-mandatory install-bonus train predict clean fclean re test-weird test-bonus-weird

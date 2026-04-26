@@ -33,12 +33,12 @@ if __name__ == "__main__":
         parser.print_help()
         sys.exit(1)
 
+    print("\nWelcome to the amazing 42's Car Price Predictor!\n")
     args = parser.parse_args()
     km_value = args.km_value
     if km_value < 0:
-        print("Error: km value cannot be negative.")
+        print("You can only use a positive km value, please try again with a valid km value.")
         sys.exit(1)
-    print(f"Predicting price for a car with {km_value} km...")
     
     # Read theta0 and theta1 from files
     theta0 = read_theta("theta0")
@@ -56,3 +56,4 @@ if __name__ == "__main__":
     
     # When talking about price and kilometers for cars, no need decimals
     print(f"Predicted price for a car with {int(km_value)} km: {int(predicted_price)}")
+    print("\nThank you for using 42's Car Price Predictor! We hope to see you again soon!\n")
